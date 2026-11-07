@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Aviator 5x Analyzer</title>
+<style>
+  :root {
+    --bg: #0f1419;
+    --card: #1a2332;
+    --accent: #00d4ff;
+    --green: #00ff9d;
+    --red: #ff4d4d;
+    --text: #e8eef5;
+    --muted: #8b9bb4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 16px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 1.8rem; margin-bottom: 4px; }
+  .subtitle { color: var(--muted); margin-bottom: 20px; font-size: 0.95rem; }
+  .disclaimer {
+    background: #2a1a1a;
+    border: 1px solid #ff4d4d44;
+    color: #ffb3b3;
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 24px;
+    font-size: 0.85rem;
+  }
+  .tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    padding: 10px 16px;
+    background: var(--card);
+    border: none;
+    color: var(--text);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  .tab.active { background: var(--accent); color: #000; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .stat {
+    background: #0d1520;
+    padding: 16px;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .stat .value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--green);
+  }
+  .stat .label { color: var(--muted); font-size: 0.8rem; margin-top: 4px; }
+  button, .btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+  }
+  button:hover { opacity: 0.9; }
+  input, textarea, select {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    background: #0d1520;
+    color: var(--text);
+    font-size: 1rem;
+    margin: 8px 0 16px;
+  }
+  textarea { min-height: 120px; resize: vertical; }
+  .results { margin-top: 16px; }
+  .history-item {
+    display: inline-block;
+    padding: 6px 10px;
+    margin: 4px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .hit5 { background: #00ff9d33; color: var(--green); }
+  .miss { background: #ff4d4d22; color: #ff8888; }
+  #plane-container {
+    height: 200px;
+    background: linear-gradient(180deg, #0a1628 0%, #1a2332 100%);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+  #plane {
+    position: absolute;
+    bottom: 40px;
+    left: 20px;
+    font-size: 2.5rem;
+    transition: transform 0.1s linear;
+  }
+  .multiplier {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--green);
+  }
+  .footer {
+    margin-top: 40px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+</style>
+</head>
+<body>
+  <h1>🛫 AI Aviator 5x Analyzer</h1>
+  <p class="subtitle">Educational tool to analyze 5x+ occurrences in crash games</p>
+
+  <div class="disclaimer">
+    <strong>Disclaimer:</strong> This is a demo/educational tool only. Real Aviator uses a provably fair RNG — past results do not predict future rounds. No tool can reliably forecast the exact crash point. Expected return is ~97% (3% house edge) no matter your cash-out target. Gamble responsibly. 18+ only.
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="theory">Theory</button>
+    <button class="tab" data-tab="simulator">Simulator</button>
+    <button class="tab" data-tab="history">History Analyzer</button>
+    <button class="tab" data-tab="live">Live Demo</button>
+  </div>
+
+  <!-- Theory -->
+  <div id="theory" class="panel active">
+    <div class="card">
+      <h2>5x Probability (97% RTP model)</h2>
+      <div class="stat-grid" style="margin-top: 16px;">
+        <div class="stat">
+          <div class="value">19.4%</div>
+          <div class="label">Chance of reaching 5x+</div>
+        </div>
+        <div class="stat">
+          <div class="value">1 in 5.15</div>
+          <div class="label">Expected frequency</div>
+        </div>
+        <div class="stat">
+          <div class="value">97%</div>
+          <div class="label">Long-run RTP</div>
+        </div>
+      </div>
+      <p style="margin-top: 16px; color: var(--muted);">
+        Formula: Probability of reaching multiplier \( m \) ≈ \( 0.97 / m \).<br>
+        At 5x this is 0.97 ÷ 5 = 0.194 (19.4%). Every cash-out target has the same expected value because lower hit rate is offset by higher payout.
+      </p>
+    </div>
+  </div>
+
+  <!-- Simulator -->
+  <div id="simulator" class="panel">
+    <div class="card">
+      <h2>Round Simulator</h2>
+      <label>Number of rounds</label>
+      <select id="roundCount">
+        <option value="100">100</option>
+        <option value="500">500</option>
+        <option value="1000" selected>1,000</option>
+        <option value="5000">5,000</option>
+        <option value="10000">10,000</option>
+      </select>
+      <button onclick="runSimulation()">Run Simulation</button>
+      <div id="simResults" class="results"></div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div id="history" class="panel">
+    <div class="card">
+      <h2>History Analyzer</h2>
+      <label>Paste recent multipliers (comma, space, or new-line separated)</label>
+      <textarea id="historyInput" placeholder="1.23, 2.45, 1.08, 6.78, 1.92, 3.21, 12.45, 1.05..."></textarea>
+      <button onclick="analyzeHistory()">Analyze</button>
+      <div id="historyResults" class="results"></div>
+    </div>
+  </div>
+
+  <!-- Live -->
+  <div id="live" class="panel">
+    <div class="card">
+      <h2>Live Demo</h2>
+      <div id="plane-container">
+        <div class="multiplier" id="liveMult">1.00x</div>
+        <div id="plane">✈️</div>
+      </div>
+      <button id="startBtn" onclick="startLive()">Start Round</button>
+      <button onclick="resetLive()" style="background:#334155; color:#fff; margin-left:8px;">Reset</button>
+      <div id="liveStats" style="margin-top:16px;"></div>
+      <div id="liveHistory" style="margin-top:12px;"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Educational demo only • Built for analysis of 5x+ patterns • Not financial advice
+  </div>
+
+<script>
+const tabs = document.querySelectorAll('.tab');
+const panels = document.querySelectorAll('.panel');
+
+tabs.forEach(tab => {
+  tab.addEventListener('click', () => {
+    tabs.forEach(t => t.classList.remove('active'));
+    panels.forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById(tab.dataset.tab).classList.add('active');
+  });
+});
+
+// Crash point generator (simplified 97% RTP model)
+function generateCrash() {
+  const r = Math.random();
+  if (r < 0.03) return 1.00;
+  return Math.max(1.00, Math.floor((0.97 / r) * 100) / 100);
+}
+
+function runSimulation() {
+  const n = parseInt(document.getElementById('roundCount').value);
+  let hits = 0;
+  const crashes = [];
+  for (let i = 0; i < n; i++) {
+    const c = generateCrash();
+    crashes.push(c);
+    if (c >= 5) hits++;
+  }
+  const pct = ((hits / n) * 100).toFixed(1);
+  const expected = (n * 0.194).toFixed(0);
+  document.getElementById('simResults').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat"><div class="value">${hits}</div><div class="label">5x+ hits</div></div>
+      <div class="stat"><div class="value">${pct}%</div><div class="label">Observed rate</div></div>
+      <div class="stat"><div class="value">${expected}</div><div class="label">Expected (19.4%)</div></div>
+    </div>
+    <p style="margin-top:12px; color:var(--muted);">
+      In ${n.toLocaleString()} simulated rounds you got ${hits} hits of 5x or higher.
+      Long-run expectation is ~19.4%.
+    </p>
+  `;
+}
+
+function analyzeHistory() {
+  const raw = document.getElementById('historyInput').value;
+  const nums = raw.split(/[\s,]+/).map(s => parseFloat(s)).filter(n => !isNaN(n) && n >= 1);
+  if (nums.length === 0) {
+    document.getElementById('historyResults').innerHTML = '<p>No valid multipliers found.</p>';
+    return;
+  }
+  const hits = nums.filter(n => n >= 5).length;
+  const pct = ((hits / nums.length) * 100).toFixed(1);
+  const html = nums.map(n => 
+    `<span class="history-item ${n >= 5 ? 'hit5' : 'miss'}">${n.toFixed(2)}x</span>`
+  ).join('');
+  document.getElementById('historyResults').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat"><div class="value">${nums.length}</div><div class="label">Rounds</div></div>
+      <div class="stat"><div class="value">${hits}</div><div class="label">5x+ hits</div></div>
+      <div class="stat"><div class="value">${pct}%</div><div class="label">Hit rate</div></div>
+    </div>
+    <div style="margin-top:16px;">${html}</div>
+    <p style="margin-top:12px; color:var(--muted);">
+      Theoretical expectation is ~19.4%. Short samples can deviate significantly.
+    </p>
+  `;
+}
+
+// Live demo
+let liveInterval = null;
+let liveHistory = [];
+let currentMult = 1.00;
+
+function startLive() {
+  if (liveInterval) return;
+  document.getElementById('startBtn').disabled = true;
+  currentMult = 1.00;
+  const crashAt = generateCrash();
+  const plane = document.getElementById('plane');
+  const multEl = document.getElementById('liveMult');
+
+  liveInterval = setInterval(() => {
+    currentMult += 0.05 + Math.random() * 0.08;
+    currentMult = Math.round(currentMult * 100) / 100;
+    multEl.textContent = currentMult.toFixed(2) + 'x';
+    multEl.style.color = currentMult >= 5 ? '#00ff9d' : '#00d4ff';
+    const height = Math.min(160, (currentMult - 1) * 20);
+    plane.style.transform = `translateY(-${height}px)`;
+
+    if (currentMult >= crashAt) {
+      clearInterval(liveInterval);
+      liveInterval = null;
+      multEl.textContent = crashAt.toFixed(2) + 'x';
+      multEl.style.color = '#ff4d4d';
+      plane.textContent = '💥';
+      document.getElementById('startBtn').disabled = false;
+      liveHistory.unshift(crashAt);
+      if (liveHistory.length > 20) liveHistory.pop();
+      updateLiveStats();
+      setTimeout(() => { plane.textContent = '✈️'; plane.style.transform = 'translateY(0)'; }, 1500);
+    }
+  }, 80);
+}
+
+function resetLive() {
+  if (liveInterval) clearInterval(liveInterval);
+  liveInterval = null;
+  document.getElementById('startBtn').disabled = false;
+  document.getElementById('liveMult').textContent = '1.00x';
+  document.getElementById('plane').textContent = '✈️';
+  document.getElementById('plane').style.transform = 'translateY(0)';
+}
+
+function updateLiveStats() {
+  const hits = liveHistory.filter(x => x >= 5).length;
+  const pct = liveHistory.length ? ((hits / liveHistory.length) * 100).toFixed(1) : 0;
+  document.getElementById('liveStats').innerHTML = `
+    <div class="stat-grid">
+      <div class="stat"><div class="value">${liveHistory.length}</div><div class="label">Rounds</div></div>
+      <div class="stat"><div class="value">${hits}</div><div class="label">5x+</div></div>
+      <div class="stat"><div class="value">${pct}%</div><div class="label">Rate</div></div>
+    </div>
+  `;
+  document.getElementById('liveHistory').innerHTML = liveHistory
+    .map(n => `<span class="history-item ${n >= 5 ? 'hit5' : 'miss'}">${n.toFixed(2)}x</span>`)
+    .join('');
+}
+</script>
+</body>
+</html>
